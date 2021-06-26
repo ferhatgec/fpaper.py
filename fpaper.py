@@ -25,6 +25,9 @@ class FPaperMarkers:
     BOLD_SET = b'\x31'
     DIM_SET = b'\x32'
     ITALIC_SET = b'\x33'
+    UNDERLINED_SET = b'\x34'
+    BLINK_SET = b'\x35'
+    RAPID_BLINK_SET = b'\x36'
 
     def __init__(self):
         pass
@@ -68,6 +71,16 @@ class FPaperMarkers:
     def is_italic_marker(self, ch) -> bool:
         return True if ch == self.ITALIC_SET else False
 
+    def is_underlined_marker(self, ch) -> bool:
+        return True if ch == self.UNDERLINED_SET else False
+
+    def is_blink_marker(self, ch) -> bool:
+        return True if ch == self.BLINK_SET else False
+
+    def is_rapid_marker(self, ch) -> bool:
+        return True if ch == self.RAPID_BLINK_SET else False
+
+
 class FPaper_Extract:
     def __init__(self, filename: str):
         self.check: FPaperMarkers = FPaperMarkers
@@ -87,6 +100,7 @@ class FPaper_Extract:
         self.is_style_marker = False
 
     def detect_style(self, ch):
+        from platform import system
         # Just waiting for 3.10
         # Not platform specific
         if self.check.is_light_marker(self.check, ch):
@@ -97,6 +111,13 @@ class FPaper_Extract:
             self.extracted_text += '\x1b[2m'
         elif self.check.is_italic_marker(self.check, ch):
             self.extracted_text += '\x1b[3m'
+        elif self.check.is_underlined_marker(self.check, ch):
+            self.extracted_text += '\x1b[4m'
+        elif self.check.is_blink_marker(self.check, ch):
+            self.extracted_text += '\x1b[5m'
+        elif self.check.is_rapid_marker(self.check, ch):
+            if system() == 'Windows':
+                self.extracted_text += '\x1b[6m'
 
     def detect(self, ch):
         if self.is_style_marker:
