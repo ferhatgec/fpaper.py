@@ -23,6 +23,8 @@ class FPaperMarkers:
     STYLE_MARKER = b'\x1A'
     LIGHT_SET = b'\x30'
     BOLD_SET = b'\x31'
+    DIM_SET = b'\x32'
+    ITALIC_SET = b'\x33'
 
     def __init__(self):
         pass
@@ -60,6 +62,11 @@ class FPaperMarkers:
     def is_bold_marker(self, ch) -> bool:
         return True if ch == self.BOLD_SET else False
 
+    def is_dim_marker(self, ch) -> bool:
+        return True if ch == self.DIM_SET else False
+
+    def is_italic_marker(self, ch) -> bool:
+        return True if ch == self.ITALIC_SET else False
 
 class FPaper_Extract:
     def __init__(self, filename: str):
@@ -78,15 +85,18 @@ class FPaper_Extract:
         self.is_end_of_text = False
 
         self.is_style_marker = False
-        self.is_light_set_marker = False
-        self.is_bold_set_marker = False
 
     def detect_style(self, ch):
         # Just waiting for 3.10
-        if ch == FPaperMarkers.LIGHT_SET:
+        # Not platform specific
+        if self.check.is_light_marker(self.check, ch):
             self.extracted_text += '\x1b[0m'
-        elif ch == FPaperMarkers.BOLD_SET:
+        elif self.check.is_bold_marker(self.check, ch):
             self.extracted_text += '\x1b[1m'
+        elif self.check.is_dim_marker(self.check, ch):
+            self.extracted_text += '\x1b[2m'
+        elif self.check.is_italic_marker(self.check, ch):
+            self.extracted_text += '\x1b[3m'
 
     def detect(self, ch):
         if self.is_style_marker:
