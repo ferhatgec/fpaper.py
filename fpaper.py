@@ -29,6 +29,12 @@ class FPaperMarkers:
     BLINK_SET = b'\x35'
     RAPID_BLINK_SET = b'\x36'
 
+    # These styles must be rendered by renderer implementation
+    ALIGN_LEFT_SET = b'\x7B'
+    ALIGN_CENTER_SET = b'\x7C'
+    ALIGN_RIGHT_SET = b'\x7D'
+    ALIGN_RESET = b'\x7E'
+
     def __init__(self):
         pass
 
@@ -80,6 +86,18 @@ class FPaperMarkers:
     def is_rapid_marker(self, ch) -> bool:
         return True if ch == self.RAPID_BLINK_SET else False
 
+    def is_left_align(self, ch) -> bool:
+        return True if ch == self.ALIGN_LEFT_SET else False
+
+    def is_center_align(self, ch) -> bool:
+        return True if ch == self.ALIGN_CENTER_SET else False
+
+    def is_right_align(self, ch) -> bool:
+        return True if ch == self.ALIGN_RIGHT_SET else False
+
+    def is_reset_align(self, ch) -> bool:
+        return True if ch == self.ALIGN_RESET else False
+
 
 class FPaper_Extract:
     def __init__(self, filename: str):
@@ -98,6 +116,11 @@ class FPaper_Extract:
         self.is_end_of_text = False
 
         self.is_style_marker = False
+
+        self.is_left_align = False
+        self.is_center_align = False
+        self.is_right_align = False
+        self.is_reset_align = False
 
     def detect_style(self, ch):
         from platform import system
@@ -118,6 +141,26 @@ class FPaper_Extract:
         elif self.check.is_rapid_marker(self.check, ch):
             if system() == 'Windows':
                 self.extracted_text += '\x1b[6m'
+        elif self.check.is_left_align(self.check, ch):
+            self.is_right_align \
+                = self.is_center_align \
+                = self.is_reset_align = False
+            self.is_left_align = True
+        elif self.check.is_center_align(self.check, ch):
+            self.is_right_align \
+                = self.is_left_align \
+                = self.is_reset_align = False
+            self.is_center_align = True
+        elif self.check.is_right_align(self.check, ch):
+            self.is_center_align \
+                = self.is_left_align \
+                = self.is_reset_align = False
+            self.is_right_align = True
+        elif self.check.is_reset_align(self.check, ch):
+            self.is_center_align \
+                = self.is_left_align \
+                = self.is_reset_align \
+                = self.is_right_align = False
 
     def detect(self, ch):
         if self.is_style_marker:
