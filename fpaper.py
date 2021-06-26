@@ -29,6 +29,8 @@ class FPaperMarkers:
     BLINK_SET = b'\x35'
     RAPID_BLINK_SET = b'\x36'
 
+    COLOR_RESET = b'\x72'
+
     # These styles must be rendered by renderer implementation
     ALIGN_LEFT_SET = b'\x7B'
     ALIGN_CENTER_SET = b'\x7C'
@@ -85,6 +87,9 @@ class FPaperMarkers:
 
     def is_rapid_marker(self, ch) -> bool:
         return True if ch == self.RAPID_BLINK_SET else False
+
+    def is_color_reset(self, ch) -> bool:
+        return True if ch == self.COLOR_RESET else False
 
     def is_left_align(self, ch) -> bool:
         return True if ch == self.ALIGN_LEFT_SET else False
@@ -161,6 +166,12 @@ class FPaper_Extract:
                 = self.is_left_align \
                 = self.is_reset_align \
                 = self.is_right_align = False
+        elif self.check.is_color_reset(self.check, ch):
+            self.extracted_text += '\x1b[0m'
+        else:
+            data = ord(ch.decode('utf-8'))
+            if (40 <= data <= 49) or (100 <= data <= 109):
+                self.extracted_text += f'\x1b[{data - 10}m'
 
     def detect(self, ch):
         if self.is_style_marker:
